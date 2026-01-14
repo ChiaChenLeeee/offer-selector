@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dimension } from '../types';
+import { Dimension, CATEGORY_COLORS } from '../types';
 import { GripVertical, ArrowUp, ArrowDown, Award, AlertCircle } from 'lucide-react';
 
 interface RankerProps {
@@ -75,9 +75,10 @@ const Ranker: React.FC<RankerProps> = ({ activeDimensions, onReorder, weights })
             onDrop={(e) => handleDrop(e, index)}
             className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-move group ${
               dragOverIndex === index ? 'border-indigo-400 bg-indigo-50 shadow-inner scale-[1.02]' : 'border-slate-100 hover:bg-white hover:border-indigo-100'
-            } ${draggedIndex === index ? 'opacity-40' : 'opacity-100'} ${dim.isPenalty ? 'bg-rose-50/30' : 'bg-slate-50'}`}
+            } ${draggedIndex === index ? 'opacity-40' : 'opacity-100'} ${dim.isPenalty ? 'bg-rose-50/30' : CATEGORY_COLORS[dim.category].light}`}
           >
-            <div className={`text-slate-300 transition-colors ${dim.isPenalty ? 'group-hover:text-rose-400' : 'group-hover:text-indigo-400'}`}>
+            <div className={`w-1.5 h-8 rounded-full ${dim.isPenalty ? 'bg-rose-400' : CATEGORY_COLORS[dim.category].bg}`}></div>
+            <div className={`text-slate-300 transition-colors ${dim.isPenalty ? 'group-hover:text-rose-400' : `group-hover:${CATEGORY_COLORS[dim.category].text}`}`}>
               <GripVertical className="w-5 h-5" />
             </div>
 
@@ -106,13 +107,13 @@ const Ranker: React.FC<RankerProps> = ({ activeDimensions, onReorder, weights })
                   {dim.isPenalty && <AlertCircle className="w-3.5 h-3.5" />}
                   {dim.name}
                 </p>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${dim.isPenalty ? 'text-rose-600 bg-rose-100' : 'text-indigo-600 bg-indigo-50'}`}>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${dim.isPenalty ? 'text-rose-600 bg-rose-100' : `${CATEGORY_COLORS[dim.category].text} ${CATEGORY_COLORS[dim.category].light}`}`}>
                   {(weights[dim.id] * 100).toFixed(1)}%
                 </span>
               </div>
               <div className="mt-2 h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
                 <div
-                  className={`h-full transition-all duration-500 ${dim.isPenalty ? 'bg-rose-500' : 'bg-indigo-600'}`}
+                  className={`h-full transition-all duration-500 ${dim.isPenalty ? 'bg-rose-500' : CATEGORY_COLORS[dim.category].bg}`}
                   style={{ width: `${weights[dim.id] * 100}%` }}
                 />
               </div>

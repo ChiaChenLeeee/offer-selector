@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Offer, Dimension, SalaryData, WorkloadData, LocationData } from '../types';
+import { Offer, Dimension, SalaryData, WorkloadData, LocationData, DimensionCategory, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { Trash2, HelpCircle, Edit3, Calculator, ChevronDown, ChevronUp, AlertCircle, Star } from 'lucide-react';
 import { calculateYearlySalary, calculateWeeklyWorkload } from '../utils/scoring';
 
@@ -40,6 +40,215 @@ const OfferForm: React.FC<OfferFormProps> = ({ offer, dimensions, onUpdate, onRe
   };
 
   const scoringDims = dimensions.filter(d => d.id !== 'company');
+
+  // 按分类分组
+  const categories: DimensionCategory[] = ['objective', 'subjective', 'personal'];
+  const groupedDimensions = categories.map(cat => ({
+    category: cat,
+    label: CATEGORY_LABELS[cat],
+    colors: CATEGORY_COLORS[cat],
+    dimensions: scoringDims.filter(d => d.category === cat)
+  })).filter(g => g.dimensions.length > 0);
+
+  const renderDimensionInput = (dim: Dimension) => {
+    const value = offer.values[dim.id];
+    const isBonus = offer.extraBonuses.some(b => b.dimensionId === dim.id);
+    const bonusObj = offer.extraBonuses.find(b => b.dimensionId === dim.id);
+    const isRatingSelect = dim.type === 'select' && dim.options?.length === 5 && dim.options.every(o => ['1','2','3','4','5'].includes(o.value));
+    const colors = CATEGORY_COLORS[dim.category];
+
+    return (
+      <div key={dim.id} className={`group relative p-3 -mx-3 rounded-2xl transition-colors ${dim.isPenalty ? 'bg-rose-50/50 hover:bg-rose-50' : `${colors.light}/30 hover:${colors.light}`}`}>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className={`text-sm font-semibold flex items-center gap-1.5 ${dim.isPenalty ? 'text-rose-700' : 'text-slate-700'}`}>
+            {dim.isPenalty && <AlertCircle className="w-3.5 h-3.5" />}
+            {dim.name}
+            {dim.isPenalty && <span className="text-[10px] bg-rose-200 text-rose-700 px-1 rounded">扣分项</span>}
+            {dim.description && (
+              <div className="group/tip relative">
+                <HelpCircle className="w-3.5 h-3.5 text-slate-300" />
+                <div className="absolute bottom-full left-0 mb-2 w-48 bg-slate-800 text-white text-[10px] p-2 rounded-lg opacity-0 invisible group-hover/tip:opacity-100 group-hover/tip:visible transition-all z-10">
+                  {dim.description}
+                </div>
+              </div>
+            )}
+          </label>
+          
+          {!dim.isPenalty && (
+            <button
+              onClick={() => toggleBonus(dim.id)}
+              disabled={!isBonus && offer.extraBonuses.length >= 3}
+              className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded transition-all ${
+                isBonus 
+                  ? 'bg-amber-100 text-amber-600' 
+                  : offer.extraBonuses.length >= 3 
+                    ? 'opacity-0' 
+                    : 'bg-white/50 text-slate-400 hover:bg-amber-50 hover:text-amber-500 border border-slate-100'
+              }`}
+            >
+              {isBonus ? '已加分' : '+ 额外加分'}
+            </button>
+          )}
+        </div>
+
+        {dim.type === 'location' && (
+          <div className="space-y-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+            <input
+              type="text"
+              value={(value as LocationData)?.city || ''}
+              onChange={e => handleValueChange(dim.id, { ...(value || {}), city: e.target.value })}
+              placeholder="输入城市名称"
+              className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm outline-none focus:border-indigo-500"
+            />
+            <div className="flex flex-wrap gap-2">
+              {dim.options?.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => handleValueChange(dim.id, { ...(value || {}), preference: opt.value })}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                    (value as LocationData)?.preference === opt.value
+                      ? `${colors.bg} border-transparent text-white shadow-md`
+                      : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {dim.type === 'salary' && (
+          <div className="space-y-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">月薪 (元)</span>
+                <input
+                  type="number"
+                  value={(value as SalaryData)?.monthly || ''}
+                  onChange={e => handleValueChange(dim.id, { ...value, monthly: Number(e.target.value) })}
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">月份</span>
+                <input
+                  type="number"
+                  value={(value as SalaryData)?.months || ''}
+                  onChange={e => handleValueChange(dim.id, { ...value, months: Number(e.target.value) })}
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">额外奖励/年终 (元)</span>
+              <input
+                type="number"
+                value={(value as SalaryData)?.bonus || ''}
+                onChange={e => handleValueChange(dim.id, { ...value, bonus: Number(e.target.value) })}
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+              />
+            </div>
+            <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
+              <span className="text-xs font-bold text-slate-500">预估年薪</span>
+              <span className={`text-sm font-black ${colors.text}`}>
+                ¥{(calculateYearlySalary((value as SalaryData) || { monthly: 0, months: 0, bonus: 0 }) / 10000).toFixed(1)}w
+              </span>
+            </div>
+          </div>
+        )}
+
+        {dim.type === 'workload' && (
+          <div className="space-y-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">每日工时</span>
+                <input
+                  type="number"
+                  value={(value as WorkloadData)?.hoursPerDay || ''}
+                  onChange={e => handleValueChange(dim.id, { ...value, hoursPerDay: Number(e.target.value) })}
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">每周天数</span>
+                <input
+                  type="number"
+                  value={(value as WorkloadData)?.daysPerWeek || ''}
+                  onChange={e => handleValueChange(dim.id, { ...value, daysPerWeek: Number(e.target.value) })}
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+            <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
+              <span className="text-xs font-bold text-slate-500">每周总工时</span>
+              <span className={`text-sm font-black ${colors.text}`}>
+                {calculateWeeklyWorkload((value as WorkloadData) || { hoursPerDay: 0, daysPerWeek: 0 })} 小时
+              </span>
+            </div>
+          </div>
+        )}
+
+        {dim.type === 'select' && (
+          <div className={`flex flex-wrap gap-2 ${isRatingSelect ? 'justify-between' : ''}`}>
+            {dim.options?.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => handleValueChange(dim.id, opt.value)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border flex items-center gap-1 ${
+                  value === opt.value
+                    ? dim.isPenalty ? 'bg-rose-600 border-rose-600 text-white shadow-md' : `${colors.bg} border-transparent text-white shadow-md`
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                } ${isRatingSelect ? 'flex-1 justify-center py-2' : ''}`}
+              >
+                {isRatingSelect && <Star className={`w-3 h-3 ${value === opt.value ? 'fill-white' : 'fill-slate-300'}`} />}
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {dim.type === 'numeric' && (
+          <input
+            type="number"
+            value={value || ''}
+            onChange={e => handleValueChange(dim.id, Number(e.target.value))}
+            className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none"
+          />
+        )}
+
+        {dim.type === 'slider' && (
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={value || 50}
+              onChange={e => handleValueChange(dim.id, Number(e.target.value))}
+              className={`flex-1 ${dim.isPenalty ? 'accent-rose-600' : 'accent-indigo-600'}`}
+            />
+            <span className="text-sm font-black text-slate-700 w-8 text-center">{value || 50}</span>
+          </div>
+        )}
+
+        {!dim.isPenalty && isBonus && (
+          <div className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-center justify-between">
+            <span className="text-[10px] font-bold text-amber-600 uppercase">额外加分 (0-100)</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={bonusObj?.points || 0}
+                onChange={e => updateBonusPoints(dim.id, Math.min(100, Math.max(0, Number(e.target.value))))}
+                className="w-16 px-2 py-1 bg-white border border-amber-200 rounded-lg text-sm text-center font-bold text-amber-600 outline-none"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
@@ -99,206 +308,19 @@ const OfferForm: React.FC<OfferFormProps> = ({ offer, dimensions, onUpdate, onRe
         </button>
       </div>
 
-      <div className="space-y-5">
-        {scoringDims.map(dim => {
-          const value = offer.values[dim.id];
-          const isBonus = offer.extraBonuses.some(b => b.dimensionId === dim.id);
-          const bonusObj = offer.extraBonuses.find(b => b.dimensionId === dim.id);
-
-          const isRatingSelect = dim.type === 'select' && dim.options?.length === 5 && dim.options.every(o => ['1','2','3','4','5'].includes(o.value));
-
-          return (
-            <div key={dim.id} className={`group relative p-3 -mx-3 rounded-2xl transition-colors ${dim.isPenalty ? 'bg-rose-50/50 hover:bg-rose-50' : 'hover:bg-slate-50/50'}`}>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className={`text-sm font-semibold flex items-center gap-1.5 ${dim.isPenalty ? 'text-rose-700' : 'text-slate-700'}`}>
-                  {dim.isPenalty && <AlertCircle className="w-3.5 h-3.5" />}
-                  {dim.name}
-                  {dim.isPenalty && <span className="text-[10px] bg-rose-200 text-rose-700 px-1 rounded">扣分项</span>}
-                  {dim.description && (
-                    <div className="group/tip relative">
-                      <HelpCircle className="w-3.5 h-3.5 text-slate-300" />
-                      <div className="absolute bottom-full left-0 mb-2 w-48 bg-slate-800 text-white text-[10px] p-2 rounded-lg opacity-0 invisible group-hover/tip:opacity-100 group-hover/tip:visible transition-all z-10">
-                        {dim.description}
-                      </div>
-                    </div>
-                  )}
-                </label>
-                
-                {!dim.isPenalty && (
-                  <button
-                    onClick={() => toggleBonus(dim.id)}
-                    disabled={!isBonus && offer.extraBonuses.length >= 3}
-                    className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded transition-all ${
-                      isBonus 
-                        ? 'bg-amber-100 text-amber-600' 
-                        : offer.extraBonuses.length >= 3 
-                          ? 'opacity-0' 
-                          : 'bg-white/50 text-slate-400 hover:bg-amber-50 hover:text-amber-500 border border-slate-100'
-                    }`}
-                  >
-                    {isBonus ? '已加分' : '+ 额外加分'}
-                  </button>
-                )}
-              </div>
-
-              {dim.type === 'location' && (
-                <div className="space-y-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                  <input
-                    type="text"
-                    value={(value as LocationData)?.city || ''}
-                    onChange={e => handleValueChange(dim.id, { ...(value || {}), city: e.target.value })}
-                    placeholder="输入城市名称"
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm outline-none focus:border-indigo-500"
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    {dim.options?.map(opt => (
-                      <button
-                        key={opt.value}
-                        onClick={() => handleValueChange(dim.id, { ...(value || {}), preference: opt.value })}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
-                          (value as LocationData)?.preference === opt.value
-                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100'
-                            : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {dim.type === 'salary' && (
-                <div className="space-y-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">月薪 (元)</span>
-                      <input
-                        type="number"
-                        value={(value as SalaryData)?.monthly || ''}
-                        onChange={e => handleValueChange(dim.id, { ...value, monthly: Number(e.target.value) })}
-                        className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">月份</span>
-                      <input
-                        type="number"
-                        value={(value as SalaryData)?.months || ''}
-                        onChange={e => handleValueChange(dim.id, { ...value, months: Number(e.target.value) })}
-                        className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">额外奖励/年终 (元)</span>
-                    <input
-                      type="number"
-                      value={(value as SalaryData)?.bonus || ''}
-                      onChange={e => handleValueChange(dim.id, { ...value, bonus: Number(e.target.value) })}
-                      className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
-                    />
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-500">预估年薪</span>
-                    <span className="text-sm font-black text-indigo-600">
-                      ¥{(calculateYearlySalary((value as SalaryData) || { monthly: 0, months: 0, bonus: 0 }) / 10000).toFixed(1)}w
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {dim.type === 'workload' && (
-                <div className="space-y-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">每日工时</span>
-                      <input
-                        type="number"
-                        value={(value as WorkloadData)?.hoursPerDay || ''}
-                        onChange={e => handleValueChange(dim.id, { ...value, hoursPerDay: Number(e.target.value) })}
-                        className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase block mb-1">每周天数</span>
-                      <input
-                        type="number"
-                        value={(value as WorkloadData)?.daysPerWeek || ''}
-                        onChange={e => handleValueChange(dim.id, { ...value, daysPerWeek: Number(e.target.value) })}
-                        className="w-full px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
-                    <span className="text-xs font-bold text-slate-500">每周总工时</span>
-                    <span className="text-sm font-black text-indigo-600">
-                      {calculateWeeklyWorkload((value as WorkloadData) || { hoursPerDay: 0, daysPerWeek: 0 })} 小时
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {dim.type === 'select' && (
-                <div className={`flex flex-wrap gap-2 ${isRatingSelect ? 'justify-between' : ''}`}>
-                  {dim.options?.map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => handleValueChange(dim.id, opt.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border flex items-center gap-1 ${
-                        value === opt.value
-                          ? dim.isPenalty ? 'bg-rose-600 border-rose-600 text-white shadow-md' : 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100'
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300'
-                      } ${isRatingSelect ? 'flex-1 justify-center py-2' : ''}`}
-                    >
-                      {isRatingSelect && <Star className={`w-3 h-3 ${value === opt.value ? 'fill-white' : 'fill-slate-300'}`} />}
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {dim.type === 'numeric' && (
-                <input
-                  type="number"
-                  value={value || ''}
-                  onChange={e => handleValueChange(dim.id, Number(e.target.value))}
-                  className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl outline-none"
-                />
-              )}
-
-              {dim.type === 'slider' && (
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={value || 50}
-                    onChange={e => handleValueChange(dim.id, Number(e.target.value))}
-                    className={`flex-1 ${dim.isPenalty ? 'accent-rose-600' : 'accent-indigo-600'}`}
-                  />
-                  <span className="text-sm font-black text-slate-700 w-8 text-center">{value || 50}</span>
-                </div>
-              )}
-
-              {!dim.isPenalty && isBonus && (
-                <div className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-amber-600 uppercase">额外加分 (0-100)</span>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={bonusObj?.points || 0}
-                      onChange={e => updateBonusPoints(dim.id, Math.min(100, Math.max(0, Number(e.target.value))))}
-                      className="w-16 px-2 py-1 bg-white border border-amber-200 rounded-lg text-sm text-center font-bold text-amber-600 outline-none"
-                    />
-                  </div>
-                </div>
-              )}
+      <div className="space-y-6">
+        {groupedDimensions.map(group => (
+          <div key={group.category} className="space-y-3">
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${group.colors.light}`}>
+              <div className={`w-2 h-2 rounded-full ${group.colors.bg}`}></div>
+              <span className={`text-sm font-bold ${group.colors.text}`}>{group.label}</span>
+              <span className="text-xs text-slate-400">({group.dimensions.length})</span>
             </div>
-          );
-        })}
+            <div className="space-y-2">
+              {group.dimensions.map(dim => renderDimensionInput(dim))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

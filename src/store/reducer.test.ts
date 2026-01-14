@@ -116,9 +116,9 @@ describe('Reducer', () => {
       const state: AppState = {
         ...getInitialState(),
         dimensions: [
-          { id: 'dim-1', name: '维度1', type: 'text', isDefault: true, active: true },
-          { id: 'dim-2', name: '维度2', type: 'text', isDefault: true, active: true },
-          { id: 'dim-3', name: '维度3', type: 'text', isDefault: true, active: true }
+          { id: 'dim-1', name: '维度1', type: 'text', category: 'objective', isDefault: true, active: true },
+          { id: 'dim-2', name: '维度2', type: 'text', category: 'objective', isDefault: true, active: true },
+          { id: 'dim-3', name: '维度3', type: 'text', category: 'objective', isDefault: true, active: true }
         ]
       };
       
@@ -138,6 +138,7 @@ describe('Reducer', () => {
         id: 'custom-1',
         name: '自定义维度',
         type: 'select',
+        category: 'subjective',
         isDefault: false,
         active: true,
         options: [
@@ -161,7 +162,7 @@ describe('Reducer', () => {
         ...getInitialState(),
         dimensions: [
           ...getInitialState().dimensions,
-          { id: 'custom-1', name: '自定义', type: 'select', isDefault: false, active: true }
+          { id: 'custom-1', name: '自定义', type: 'select', category: 'subjective', isDefault: false, active: true }
         ],
         offers: [{
           id: 'offer-1',

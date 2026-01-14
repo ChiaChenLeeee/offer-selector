@@ -1,11 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fc from 'fast-check';
 import { saveData, loadData, clearData, CURRENT_VERSION } from './storage';
-import { StorageData, Dimension, Offer, DimensionType, DimensionOption, ExtraBonus } from '../types';
+import { StorageData, Dimension, Offer, DimensionType, DimensionOption, ExtraBonus, DimensionCategory } from '../types';
 
 // 生成器：维度类型
 const dimensionTypeArb: fc.Arbitrary<DimensionType> = fc.constantFrom(
   'text', 'numeric', 'salary', 'workload', 'select', 'slider', 'location'
+);
+
+// 生成器：维度分类
+const dimensionCategoryArb: fc.Arbitrary<DimensionCategory> = fc.constantFrom(
+  'objective', 'subjective', 'personal'
 );
 
 // 生成器：单选选项
@@ -20,6 +25,7 @@ const dimensionArb: fc.Arbitrary<Dimension> = fc.record({
   id: fc.uuid(),
   name: fc.string({ minLength: 1, maxLength: 50 }),
   type: dimensionTypeArb,
+  category: dimensionCategoryArb,
   isDefault: fc.boolean(),
   active: fc.boolean(),
   options: fc.option(fc.array(dimensionOptionArb, { minLength: 1, maxLength: 5 }), { nil: undefined }),

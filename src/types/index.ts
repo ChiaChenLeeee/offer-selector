@@ -8,6 +8,21 @@ export type DimensionType =
   | 'slider'         // 滑动条
   | 'location';      // 地点（城市+符合程度）
 
+// 维度分类
+export type DimensionCategory = 'objective' | 'subjective' | 'personal';
+
+export const CATEGORY_LABELS: Record<DimensionCategory, string> = {
+  objective: '岗位客观事实',
+  subjective: '岗位主观因素',
+  personal: '个人自身理想'
+};
+
+export const CATEGORY_COLORS: Record<DimensionCategory, { bg: string; text: string; border: string; light: string; ring: string }> = {
+  objective: { bg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-200', light: 'bg-blue-50', ring: 'ring-blue-50' },
+  subjective: { bg: 'bg-purple-500', text: 'text-purple-600', border: 'border-purple-200', light: 'bg-purple-50', ring: 'ring-purple-50' },
+  personal: { bg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-200', light: 'bg-emerald-50', ring: 'ring-emerald-50' }
+};
+
 // 单选选项
 export interface DimensionOption {
   value: string;
@@ -20,6 +35,7 @@ export interface Dimension {
   id: string;
   name: string;
   type: DimensionType;
+  category: DimensionCategory;  // 维度分类
   description?: string;
   isDefault: boolean;      // 是否默认维度
   active: boolean;         // 是否启用

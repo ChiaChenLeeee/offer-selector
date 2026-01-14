@@ -18,6 +18,7 @@ describe('评分计算引擎', () => {
             id: `dim_${i}`,
             name: `维度${i}`,
             type: 'select' as const,
+            category: 'objective' as const,
             isDefault: true,
             active: true
           }));
@@ -36,6 +37,7 @@ describe('评分计算引擎', () => {
             id: `dim_${i}`,
             name: `维度${i}`,
             type: 'select' as const,
+            category: 'objective' as const,
             isDefault: true,
             active: true
           }));
@@ -127,7 +129,7 @@ describe('评分计算引擎', () => {
           ),
           (offers) => {
             const dimensions: Dimension[] = [
-              { id: 'test', name: '测试', type: 'slider', isDefault: true, active: true }
+              { id: 'test', name: '测试', type: 'slider', category: 'objective', isDefault: true, active: true }
             ];
             const weights = calculateWeights(dimensions);
             const results = calculateOfferScores(offers as Offer[], dimensions, weights);
@@ -157,6 +159,7 @@ describe('评分计算引擎', () => {
         id: 'penalty',
         name: '扣分项',
         type: 'select',
+        category: 'subjective',
         isDefault: true,
         active: true,
         isPenalty: true,

@@ -1,17 +1,51 @@
 import { Dimension } from '../types';
 
 export const DEFAULT_DIMENSIONS: Dimension[] = [
+  // 岗位客观事实
   {
     id: 'company',
     name: '公司名称',
     type: 'text',
+    category: 'objective',
     isDefault: true,
     active: true
   },
   {
+    id: 'salary',
+    name: '薪酬待遇',
+    type: 'salary',
+    category: 'objective',
+    isDefault: true,
+    active: true
+  },
+  {
+    id: 'location',
+    name: '工作地点',
+    type: 'location',
+    category: 'objective',
+    isDefault: true,
+    active: true,
+    description: '输入城市名称并选择符合程度',
+    options: [
+      { label: '符合预期', value: 'met', score: 100 },
+      { label: '无所谓', value: 'indifferent', score: 50 },
+      { label: '不符合预期', value: 'unmet', score: 20 }
+    ]
+  },
+  {
+    id: 'workload',
+    name: '上班时长',
+    type: 'workload',
+    category: 'objective',
+    isDefault: true,
+    active: true
+  },
+  // 岗位主观因素
+  {
     id: 'jobTitleValue',
     name: '岗位title价值打分',
     type: 'select',
+    category: 'subjective',
     isDefault: true,
     active: true,
     description: '1-5分，分值越高代表岗位Title或背书价值越高',
@@ -24,29 +58,10 @@ export const DEFAULT_DIMENSIONS: Dimension[] = [
     ]
   },
   {
-    id: 'location',
-    name: '工作地点',
-    type: 'location',
-    isDefault: true,
-    active: true,
-    description: '输入城市名称并选择符合程度',
-    options: [
-      { label: '符合预期', value: 'met', score: 100 },
-      { label: '无所谓', value: 'indifferent', score: 50 },
-      { label: '不符合预期', value: 'unmet', score: 20 }
-    ]
-  },
-  {
-    id: 'salary',
-    name: '薪酬待遇',
-    type: 'salary',
-    isDefault: true,
-    active: true
-  },
-  {
     id: 'isCore',
     name: '业务是否核心',
     type: 'select',
+    category: 'subjective',
     isDefault: true,
     active: true,
     options: [
@@ -56,16 +71,10 @@ export const DEFAULT_DIMENSIONS: Dimension[] = [
     ]
   },
   {
-    id: 'workload',
-    name: '上班时长',
-    type: 'workload',
-    isDefault: true,
-    active: true
-  },
-  {
     id: 'pua',
     name: '老板是否经常PUA',
     type: 'select',
+    category: 'subjective',
     isDefault: true,
     active: true,
     isPenalty: true,
@@ -77,11 +86,33 @@ export const DEFAULT_DIMENSIONS: Dimension[] = [
   }
 ];
 
+
 export const OPTIONAL_DIMENSIONS: Dimension[] = [
+  // 岗位客观事实
+  {
+    id: 'annualLeave',
+    name: '年假',
+    type: 'numeric',
+    category: 'objective',
+    isDefault: false,
+    active: false,
+    description: '输入天数'
+  },
+  {
+    id: 'salaryIncrease',
+    name: '每年调薪幅度',
+    type: 'numeric',
+    category: 'objective',
+    isDefault: false,
+    active: false,
+    description: '输入百分比，10%为满分'
+  },
+  // 岗位主观因素
   {
     id: 'abilityImprovement',
     name: '是否能持续有能力提升',
     type: 'select',
+    category: 'subjective',
     isDefault: false,
     active: false,
     options: [
@@ -92,30 +123,10 @@ export const OPTIONAL_DIMENSIONS: Dimension[] = [
     ]
   },
   {
-    id: 'mainJobEmpowersSide',
-    name: '主业是否赋能未来的副业',
-    type: 'select',
-    isDefault: false,
-    active: false,
-    options: [
-      { label: '非常有帮助', value: 'v_high', score: 100 },
-      { label: '有一定帮助', value: 'high', score: 70 },
-      { label: '完全没关系', value: 'none', score: 20 },
-      { label: '不确定', value: 'unsure', score: 50 }
-    ]
-  },
-  {
-    id: 'annualLeave',
-    name: '年假',
-    type: 'numeric',
-    isDefault: false,
-    active: false,
-    description: '输入天数'
-  },
-  {
     id: 'leadership',
     name: '领导风格',
     type: 'select',
+    category: 'subjective',
     isDefault: false,
     active: false,
     options: [
@@ -128,6 +139,7 @@ export const OPTIONAL_DIMENSIONS: Dimension[] = [
     id: 'atmosphere',
     name: '团队氛围',
     type: 'select',
+    category: 'subjective',
     isDefault: false,
     active: false,
     options: [
@@ -140,6 +152,7 @@ export const OPTIONAL_DIMENSIONS: Dimension[] = [
     id: 'outlook',
     name: '业务前景',
     type: 'select',
+    category: 'subjective',
     isDefault: false,
     active: false,
     options: [
@@ -153,6 +166,7 @@ export const OPTIONAL_DIMENSIONS: Dimension[] = [
     id: 'turnover',
     name: '组内离职情况',
     type: 'numeric',
+    category: 'subjective',
     isDefault: false,
     active: false,
     description: '半年内离职人数'
@@ -161,6 +175,7 @@ export const OPTIONAL_DIMENSIONS: Dimension[] = [
     id: 'promotion',
     name: '晋升机会',
     type: 'select',
+    category: 'subjective',
     isDefault: false,
     active: false,
     options: [
@@ -171,17 +186,10 @@ export const OPTIONAL_DIMENSIONS: Dimension[] = [
     ]
   },
   {
-    id: 'salaryIncrease',
-    name: '每年调薪幅度',
-    type: 'numeric',
-    isDefault: false,
-    active: false,
-    description: '输入百分比，10%为满分'
-  },
-  {
     id: 'exitDifficulty',
     name: '后续是否便于跳槽',
     type: 'select',
+    category: 'subjective',
     isDefault: false,
     active: false,
     options: [
@@ -190,10 +198,26 @@ export const OPTIONAL_DIMENSIONS: Dimension[] = [
       { label: '不确定', value: 'unsure', score: 50 }
     ]
   },
+  // 个人自身理想
+  {
+    id: 'mainJobEmpowersSide',
+    name: '主业是否赋能未来的副业',
+    type: 'select',
+    category: 'personal',
+    isDefault: false,
+    active: false,
+    options: [
+      { label: '非常有帮助', value: 'v_high', score: 100 },
+      { label: '有一定帮助', value: 'high', score: 70 },
+      { label: '完全没关系', value: 'none', score: 20 },
+      { label: '不确定', value: 'unsure', score: 50 }
+    ]
+  },
   {
     id: 'sideHustle',
     name: '是否有时间做副业',
     type: 'select',
+    category: 'personal',
     isDefault: false,
     active: false,
     options: [
@@ -206,6 +230,7 @@ export const OPTIONAL_DIMENSIONS: Dimension[] = [
     id: 'personalTime',
     name: '个人娱乐时间',
     type: 'select',
+    category: 'personal',
     isDefault: false,
     active: false,
     options: [

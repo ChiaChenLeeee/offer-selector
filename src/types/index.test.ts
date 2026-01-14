@@ -7,6 +7,7 @@ describe('Types', () => {
       id: 'test',
       name: '测试维度',
       type: 'text',
+      category: 'objective',
       isDefault: false,
       active: true
     }
