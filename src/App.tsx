@@ -182,7 +182,16 @@ function AppContent() {
   };
 
   const updateDimension = (id: string, updates: Partial<Dimension>) => {
-    setAllDimensions(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+    setAllDimensions(prev => {
+      const existing = prev.find(d => d.id === id);
+      if (existing) {
+        // 更新现有维度
+        return prev.map(d => d.id === id ? { ...d, ...updates } : d);
+      } else {
+        // 添加新维度
+        return [...prev, updates as Dimension];
+      }
+    });
   };
 
   const addOffer = () => {
@@ -329,7 +338,7 @@ function AppContent() {
                   <p className="text-sm text-gray-500 mb-6">点击上方按钮创建你的第一个 Offer</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${editingOfferId ? 'items-start' : ''}`}>
                   {scoredOffers.map(({ offer, score }) => (
                     <OfferCard
                       key={offer.id}

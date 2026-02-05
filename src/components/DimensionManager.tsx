@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Dimension, DimensionType, DimensionOption, DimensionCategory, CATEGORY_LABELS, CATEGORY_COLORS } from '../types';
 import { 
-  Check, Plus, X, ChevronDown, ChevronUp, AlertCircle, 
+  Check, Plus, ChevronDown, ChevronUp, AlertCircle, 
   Trash2, Edit2, Sliders
 } from 'lucide-react';
 
@@ -14,7 +14,7 @@ interface DimensionManagerProps {
 }
 
 const DimensionManager: React.FC<DimensionManagerProps> = ({ 
-  dimensions, onToggle, onAddCustom, onRemoveCustom, onUpdateDimension 
+  dimensions, onToggle, onRemoveCustom, onUpdateDimension 
 }) => {
   const [expandedDim, setExpandedDim] = useState<string | null>(null);
   const [newOptionLabel, setNewOptionLabel] = useState('');
@@ -99,7 +99,7 @@ const DimensionManager: React.FC<DimensionManagerProps> = ({
   }, [dimensions]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       {(['objective', 'subjective', 'personal'] as const).map(category => (
         <CategoryCard
           key={category}
@@ -162,11 +162,40 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   handleSaveOptionLabel
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const [showAddDimension, setShowAddDimension] = useState(false);
+  const [newDimName, setNewDimName] = useState('');
+  const [newDimType, setNewDimType] = useState<DimensionType>('select');
+  const [isPenalty, setIsPenalty] = useState(false);
   const colors = CATEGORY_COLORS[category];
   const label = CATEGORY_LABELS[category];
 
   const visibleDimensions = expanded ? dimensions : dimensions.slice(0, 3);
   const hasMore = dimensions.length > 3;
+
+  const handleAddNewDimension = () => {
+    if (!newDimName.trim()) return;
+
+    const newDim: Dimension = {
+      id: `custom_${Date.now()}`,
+      name: newDimName.trim(),
+      type: newDimType,
+      category: category,
+      isDefault: false,
+      active: true,
+      isPenalty: isPenalty,
+      options: (newDimType === 'select' || newDimType === 'location') ? [
+        { label: '符合预期', value: 'good', score: 100 },
+        { label: '一般', value: 'medium', score: 60 },
+        { label: '不符合预期', value: 'bad', score: 20 }
+      ] : undefined
+    };
+
+    onUpdateDimension(newDim.id, newDim);
+    setNewDimName('');
+    setNewDimType('select');
+    setIsPenalty(false);
+    setShowAddDimension(false);
+  };
 
   const renderDimensionItem = (dim: Dimension) => {
     const hasOptions = (dim.type === 'select' || dim.type === 'location') && dim.options && dim.options.length > 0;
@@ -198,14 +227,17 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                 <Sliders className="w-3 h-3" />
               </button>
             )}
-            {!dim.isDefault && (
-              <button
-                onClick={() => onRemoveCustom(dim.id)}
-                className="p-1 text-gray-300 hover:text-red-500 transition-colors"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (confirm(`确定要删除"${dim.name}"吗？`)) {
+                  onRemoveCustom(dim.id);
+                }
+              }}
+              className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+              title="删除维度"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
           </div>
         </div>
 
@@ -295,12 +327,70 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-lg p-5 border ${colors.border}`}>
+    <div className={`bg-white rounded-lg p-5 border ${colors.border} flex flex-col`}>
       <div className="flex items-center gap-2 mb-4">
         <div className={`w-3 h-3 rounded-full ${colors.bg}`}></div>
         <h3 className={`text-sm font-semibold ${colors.text}`}>{label}</h3>
         <span className="text-xs text-gray-400">({dimensions.length})</span>
+        <button
+          onClick={() => setShowAddDimension(!showAddDimension)}
+          className={`ml-auto p-1 rounded transition-colors ${showAddDimension ? colors.bg + ' text-white' : 'text-gray-300 hover:' + colors.text}`}
+          title="添加新维度"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
       </div>
+
+      {showAddDimension && (
+        <div className={`mb-4 p-3 rounded-lg ${colors.light} space-y-2`}>
+          <input
+            type="text"
+            value={newDimName}
+            onChange={(e) => setNewDimName(e.target.value)}
+            placeholder="维度名称..."
+            className="w-full text-xs px-3 py-2 bg-white border border-gray-200 rounded-lg outline-none focus:border-purple-400"
+          />
+          <div className="flex gap-2">
+            <select
+              value={newDimType}
+              onChange={(e) => setNewDimType(e.target.value as DimensionType)}
+              className="flex-1 text-xs px-2 py-1.5 bg-white border border-gray-200 rounded-lg outline-none"
+            >
+              <option value="select">单选</option>
+              <option value="numeric">数值</option>
+              <option value="slider">滑动条</option>
+              <option value="location">地点</option>
+            </select>
+            <label className="flex items-center gap-1 text-xs text-gray-600">
+              <input
+                type="checkbox"
+                checked={isPenalty}
+                onChange={(e) => setIsPenalty(e.target.checked)}
+                className="rounded"
+              />
+              扣分项
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleAddNewDimension}
+              className={`flex-1 ${colors.bg} text-white text-xs py-1.5 rounded-lg hover:opacity-90 font-medium`}
+            >
+              添加
+            </button>
+            <button
+              onClick={() => {
+                setShowAddDimension(false);
+                setNewDimName('');
+                setIsPenalty(false);
+              }}
+              className="px-3 text-xs text-gray-500 hover:text-gray-700"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-2">
         {visibleDimensions.map(dim => renderDimensionItem(dim))}

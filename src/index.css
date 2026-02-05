@@ -17,4 +17,10 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+html {
+  scrollbar-gutter: stable;
 }
