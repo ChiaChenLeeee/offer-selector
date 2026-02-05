@@ -58,13 +58,13 @@ const Ranker: React.FC<RankerProps> = ({ activeDimensions, onReorder, weights })
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 border border-gray-200">
-      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-2">
-        <Award className="w-5 h-5 text-purple-600" /> 评分重要度排序
+    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 h-fit">
+      <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-2">
+        <Award className="w-5 h-5 text-indigo-600" /> 权重排序
       </h3>
-      <p className="text-sm text-gray-400 mb-6">位置越靠前，该项对最终评分的影响越大。支持拖拽排序。</p>
+      <p className="text-sm text-slate-400 mb-6">位置越靠前，该项对最终评分的影响越大。支持拖拽排序。</p>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {activeDimensions.map((dim, index) => (
           <div
             key={dim.id}
@@ -73,12 +73,12 @@ const Ranker: React.FC<RankerProps> = ({ activeDimensions, onReorder, weights })
             onDragEnd={handleDragEnd}
             onDragOver={(e) => handleDragOver(e, index)}
             onDrop={(e) => handleDrop(e, index)}
-            className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-move group ${
-              dragOverIndex === index ? 'border-purple-400 bg-purple-50 shadow-inner scale-[1.02]' : 'border-gray-100 hover:bg-white hover:border-purple-100'
+            className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-move group ${
+              dragOverIndex === index ? 'border-indigo-400 bg-indigo-50 shadow-inner scale-[1.02]' : 'border-slate-100 hover:bg-white hover:border-indigo-100'
             } ${draggedIndex === index ? 'opacity-40' : 'opacity-100'} ${dim.isPenalty ? 'bg-rose-50/30' : CATEGORY_COLORS[dim.category].light}`}
           >
             <div className={`w-1.5 h-8 rounded-full ${dim.isPenalty ? 'bg-rose-400' : CATEGORY_COLORS[dim.category].bg}`}></div>
-            <div className={`text-gray-300 transition-colors ${dim.isPenalty ? 'group-hover:text-rose-400' : `group-hover:${CATEGORY_COLORS[dim.category].text}`}`}>
+            <div className={`text-slate-300 transition-colors ${dim.isPenalty ? 'group-hover:text-rose-400' : `group-hover:${CATEGORY_COLORS[dim.category].text}`}`}>
               <GripVertical className="w-5 h-5" />
             </div>
 
@@ -86,7 +86,7 @@ const Ranker: React.FC<RankerProps> = ({ activeDimensions, onReorder, weights })
               <button
                 onClick={(e) => { e.stopPropagation(); move(index, 'up'); }}
                 disabled={index === 0}
-                className={`p-0.5 hover:text-purple-600 disabled:opacity-0 transition-all ${dim.isPenalty ? 'hover:text-rose-600' : ''}`}
+                className={`p-0.5 hover:text-indigo-600 disabled:opacity-0 transition-all ${dim.isPenalty ? 'hover:text-rose-600' : ''}`}
                 title="上移"
               >
                 <ArrowUp className="w-3.5 h-3.5" />
@@ -94,7 +94,7 @@ const Ranker: React.FC<RankerProps> = ({ activeDimensions, onReorder, weights })
               <button
                 onClick={(e) => { e.stopPropagation(); move(index, 'down'); }}
                 disabled={index === activeDimensions.length - 1}
-                className={`p-0.5 hover:text-purple-600 disabled:opacity-0 transition-all ${dim.isPenalty ? 'hover:text-rose-600' : ''}`}
+                className={`p-0.5 hover:text-indigo-600 disabled:opacity-0 transition-all ${dim.isPenalty ? 'hover:text-rose-600' : ''}`}
                 title="下移"
               >
                 <ArrowDown className="w-3.5 h-3.5" />
@@ -103,15 +103,15 @@ const Ranker: React.FC<RankerProps> = ({ activeDimensions, onReorder, weights })
 
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <p className={`text-sm font-medium flex items-center gap-1.5 ${dim.isPenalty ? 'text-rose-700' : 'text-gray-800'}`}>
+                <p className={`text-sm font-bold flex items-center gap-1.5 ${dim.isPenalty ? 'text-rose-700' : 'text-slate-800'}`}>
                   {dim.isPenalty && <AlertCircle className="w-3.5 h-3.5" />}
                   {dim.name}
                 </p>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${dim.isPenalty ? 'text-rose-600 bg-rose-100' : `${CATEGORY_COLORS[dim.category].text} ${CATEGORY_COLORS[dim.category].light}`}`}>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${dim.isPenalty ? 'text-rose-600 bg-rose-100' : `${CATEGORY_COLORS[dim.category].text} ${CATEGORY_COLORS[dim.category].light}`}`}>
                   {(weights[dim.id] * 100).toFixed(1)}%
                 </span>
               </div>
-              <div className="mt-2 h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+              <div className="mt-2 h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all duration-500 ${dim.isPenalty ? 'bg-rose-500' : CATEGORY_COLORS[dim.category].bg}`}
                   style={{ width: `${weights[dim.id] * 100}%` }}
@@ -122,8 +122,8 @@ const Ranker: React.FC<RankerProps> = ({ activeDimensions, onReorder, weights })
         ))}
       </div>
 
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-100 border-dashed">
-        <p className="text-xs text-gray-500 leading-relaxed text-center italic">
+      <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+        <p className="text-xs text-slate-500 leading-relaxed text-center italic">
           排名第 i 位的权重 = (n - i + 1) / [n(n+1)/2]
         </p>
       </div>
