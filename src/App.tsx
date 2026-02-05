@@ -19,7 +19,6 @@ const AUTO_SAVE_DELAY = 2000;
 function AppContent() {
   const { user, loading: authLoading } = useAuth();
   const [activeNav, setActiveNav] = useState<NavItem>('offers');
-  const [isSyncing, setIsSyncing] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -73,7 +72,6 @@ function AppContent() {
   const syncFromCloudData = async () => {
     if (!user) return;
     
-    setIsSyncing(true);
     try {
       const { dimensions, offers } = await syncFromCloud(user.id);
       
@@ -86,23 +84,6 @@ function AppContent() {
       }
     } catch (error) {
       console.error('从云端同步数据失败', error);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const saveToCloud = async () => {
-    if (!user) return;
-    
-    setIsSyncing(true);
-    try {
-      await syncToCloud(user.id, allDimensions, allOffers);
-      alert('数据已保存到云端');
-    } catch (error) {
-      console.error('保存到云端失败', error);
-      alert('保存失败，请稍后重试');
-    } finally {
-      setIsSyncing(false);
     }
   };
 
